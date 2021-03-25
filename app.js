@@ -50,6 +50,26 @@ const itemCtrl = (function(){
     return newItem;
   },
 
+  getItemById: function(id){
+    let found = null;
+
+    //Loop through items
+    data.items.forEach(function(item){
+      if(item.id === id){
+        found = item;
+      }
+    });
+    return found;
+  },
+
+  setCurrentItem: function(item){
+    data.currentItem = item;
+  },
+
+  getCurrentItem() {
+    return data.currentItem;
+  },
+
   getTotalCalories: function() {
     let total = 0;
     
@@ -141,6 +161,12 @@ const UICtrl = (function(){
       document.querySelector(UISelectors.itemCaloriesInput).value = '';  
     },
 
+    addItemToForm: function() {
+      document.querySelector(UISelectors.itemNameInput).value = itemCtrl.getCurrentItem().name;
+      document.querySelector(UISelectors.itemCaloriesInput).value = itemCtrl.getCurrentItem().calories; 
+      UICtrl.showEditState();
+    },
+
     hideList: function(){
       document.querySelector(UISelectors.itemList).style.display = 'none';
     },
@@ -155,6 +181,13 @@ const UICtrl = (function(){
       document.querySelector(UISelectors.deleteBtn).style.display = 'none';
       document.querySelector(UISelectors.backBtn).style.display = 'none';
       document.querySelector(UISelectors.addBtn).style.display = 'inline';
+    },
+
+    showEditState: function(){
+      document.querySelector(UISelectors.updateBtn).style.display = 'inline';
+      document.querySelector(UISelectors.deleteBtn).style.display = 'inline';
+      document.querySelector(UISelectors.backBtn).style.display = 'inline';
+      document.querySelector(UISelectors.addBtn).style.display = 'none';
     },
 
     getSelectors: function(){
@@ -174,6 +207,9 @@ const App = (function(itemCtrl, UICtrl){
 
     //Add item event
     document.querySelector(UISelectors.addBtn).addEventListener('click', itemAddSubmit);
+  
+    //Edit icon click event
+    document.querySelector(UISelectors.itemList).addEventListener('click', itemUpdateSubmit);
   }
 
   //Add item submit
@@ -204,13 +240,38 @@ const App = (function(itemCtrl, UICtrl){
     e.preventDefault();
   }
 
+  //Update item submit
+  const itemUpdateSubmit = function(e){
+    if(e.target.classList.contains('edit-item')){
+      //Get list item id
+      const listId = e.target.parentNode.parentNode.id;
+      
+      //Split into an array
+      const listIdArray = listId.split('-');
+      
+      //Get the actual id
+      const id = parseInt(listIdArray[1]);
+
+      //Get item
+      const itemToEdit = itemCtrl.getItemById(id);
+
+      //Set current item
+      itemCtrl.setCurrentItem(itemToEdit);
+
+      //Add item to form
+      UICtrl.addItemToForm();
+    }
+
+    e.preventDefault();
+  }
+
   //Public methods
   return {
     init: function() {
   
       //Clear edit state / set initial set
       UICtrl.clearEditState();
-      
+
       //Fetch items from data structure
       const items = itemCtrl.getItems();
 
